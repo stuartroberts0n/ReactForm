@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
 import {
-  type IPropertyPaneConfiguration,
+  IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
@@ -14,6 +14,7 @@ import { IReactFormProps } from './components/IReactFormProps';
 
 export interface IReactFormWebPartProps {
   description: string;
+  websiteUrl: string;
 }
 
 export default class ReactFormWebPart extends BaseClientSideWebPart<IReactFormWebPartProps> {
@@ -29,7 +30,9 @@ export default class ReactFormWebPart extends BaseClientSideWebPart<IReactFormWe
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
-        userDisplayName: this.context.pageContext.user.displayName
+        userDisplayName: this.context.pageContext.user.displayName,
+        websiteUrl: this.context.pageContext.web.absoluteUrl,
+        spcontext: this.context
       }
     );
 

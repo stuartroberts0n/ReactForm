@@ -1,43 +1,260 @@
 import * as React from 'react';
-import styles from './ReactForm.module.scss';
-import type { IReactFormProps } from './IReactFormProps';
-import { escape } from '@microsoft/sp-lodash-subset';
+import { IReactFormProps } from './IReactFormProps';
+import { getSP, SPFI } from '../../../pnpjsConfig';
+import { PrimaryButton, DetailsList, SelectionMode, IconButton, Dialog, DialogType, DialogFooter, TextField, DefaultButton } from 'office-ui-fabric-react';
 
-export default class ReactForm extends React.Component<IReactFormProps, {}> {
-  public render(): React.ReactElement<IReactFormProps> {
-    const {
-      description,
-      isDarkTheme,
-      environmentMessage,
-      hasTeamsContext,
-      userDisplayName
-    } = this.props;
+// type definitions
+interface IQuoteRes {
+  Title: string;
+  Author0: string;
+  Id: number;
+}
 
-    return (
-      <section className={`${styles.reactForm} ${hasTeamsContext ? styles.teams : ''}`}>
-        <div className={styles.welcome}>
-          <img alt="" src={isDarkTheme ? require('../assets/welcome-dark.png') : require('../assets/welcome-light.png')} className={styles.welcomeImage} />
-          <h2>Well done, {escape(userDisplayName)}!</h2>
-          <div>{environmentMessage}</div>
-          <div>Web part property value: <strong>{escape(description)}</strong></div>
+interface IQuote {
+  quote: string;
+  author: string;
+  id: number;
+}
+
+const ReactForm = (props: IReactFormProps): React.ReactElement => {
+  const _sp: SPFI = getSP(props.spcontext);
+  const [reload, setReload] = React.useState<boolean>(false);
+  const [quotes, setQuotes] = React.useState<Array<IQuote>>([]);
+  const [currentId, setCurrentId] = React.useState<number | any>();
+  const [isEditHidden, setIsEditHidden] = React.useState<boolean>(true);
+  const [editedQuote, setEditedQuote] = React.useState<string>('');
+  const [editedAuthor, setEditedAuthor] = React.useState<string>('');
+  const [isAddHidden, setIsAddHidden] = React.useState<boolean>(true);
+  const [newQuote, setNewQuote] = React.useState<string>('');
+  const [newAuthor, setNewAuthor] = React.useState<string>('');
+
+  // use effect hook to call function each time page reloads
+  React.useEffect(() => {
+    getListItems();
+  }, [reload])
+
+  const getListItems = async () => {
+    //this function gets list items from the site specified in the serve.json file 
+    try {
+      //fetching the list items
+      const getListItems = await _sp.web.lists.getByTitle('Quotes').items();
+      //setting the list items to a state variable
+      setQuotes(getListItems.map((each: IQuoteRes) => ({
+        quote: each.Title,
+        author: each.Author0,
+        id: each.Id
+      })))
+    } catch (e) {
+      //log any errors if there are any
+      console.log(e);
+    } finally {
+      console.log('List items fetched', quotes);
+    }
+  }
+
+  const handleQuote = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNewQuote(event.target.value);
+  };
+
+  const handleAuthor = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNewAuthor(event.target.value);
+  };
+
+  const addNewListItem = async () => {
+    // Get a reference to the SharePoint list named "Quotes"
+    const list = _sp.web.lists.getByTitle("Quotes");
+    try {
+      // Add a new item to the list with the provided values
+      await list.items.add({
+        Title: newQuote,
+        Author0: newAuthor
+      });
+      // Close the add modal/dialog
+      setIsAddHidden(true);
+      // Trigger a reload by toggling the 'reload' state variable
+      setReload(!reload);
+      // Log a message to indicate that the list item has been successfully added
+      console.log('List item added');
+    } catch (e) {
+      // Log any errors that occur during the addition process
+      console.log(e);
+    } finally {
+      // Ensure that the add modal/dialog is closed, even in case of an error
+      setIsAddHidden(true);
+    }
+  }
+
+  const openEditDialog = (id: number) => {
+    setCurrentId(id)
+    //this function would open the edit dialogue and expose a form
+    setIsEditHidden(false);
+    const quote: IQuote | undefined = quotes.find((each) => each.id === id); // you may have to make changes to your tsconfig.json to use find, "target": "es2015"
+    // setting form with previous quote so user can edit
+    if (quote) {
+      setEditedAuthor(quote.author);
+      setEditedQuote(quote.quote)
+    }
+  };
+
+  const handleQuoteChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //handling change of quote
+    setEditedQuote(event.target.value);
+  };
+
+  const handleAuthorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //handling change of author
+    setEditedAuthor(event.target.value);
+  };
+
+  const editListItem = async () => {
+    // Get a reference to the SharePoint list named "Quotes"
+    const list = _sp.web.lists.getByTitle("Quotes");
+    try {
+      // Update the list item with the currentId using the provided values
+      await list.items.getById(currentId).update({
+        Title: editedQuote,
+        Author0: editedAuthor
+      });
+      // Close the edit modal/dialog
+      setIsEditHidden(true);
+      // Trigger a reload by toggling the 'reload' state variable
+      setReload(!reload);
+      // Log a message to indicate that the list item has been successfully edited
+      console.log('List item edited');
+    } catch (e) {
+      // Log any errors that occur during the update process
+      console.log(e);
+    } finally {
+      // Ensure that the edit modal/dialog is closed, even in case of an error
+      setIsEditHidden(true);
+    }
+  }
+
+
+  const deleteListItem = async (id: number) => {
+    // Get a reference to the SharePoint list named "Quotes"
+    const list = _sp.web.lists.getByTitle("Quotes");
+    try {
+      // Delete the list item with the specified ID
+      await list.items.getById(id).delete();
+      // Trigger a reload by toggling the 'reload' state variable
+      setReload(!reload);
+      // Log a message to indicate that the list item has been successfully deleted
+      console.log('List item deleted');
+    } catch (e) {
+      // Log any errors that occur during the deletion process
+      console.log(e);
+    }
+  }
+  
+
+  return (
+    <>
+      <h1>Using React and SPFx to update SharePoint List</h1>
+      <div className='quoteBox'>
+        <h2>Quotes</h2>
+        <div className='quoteContainer'>
+          <DetailsList
+            items={quotes || []}
+            columns={[
+              {
+                key: 'quoteColumn',
+                name: 'Quote',
+                fieldName: 'quote',
+                minWidth: 200,
+                isResizable: true,
+                onRender: (item: IQuote) => <div>{item.quote}</div>,
+              },
+              {
+                key: 'authorColumn',
+                name: 'Author',
+                fieldName: 'author',
+                minWidth: 100,
+                isResizable: true,
+                onRender: (item: IQuote) => <div>{item.author}</div>,
+              },
+              {
+                key: 'actionsColumn',
+                name: 'Actions',
+                minWidth: 100,
+                isResizable: true,
+                onRender: (item: IQuote) => (
+                  <div>
+                    <IconButton
+                      iconProps={{ iconName: 'Edit' }}
+                      // onClick={() => editListItem(item.id)} // handles the edit list item functionality
+                      onClick={() => openEditDialog(item.id)}
+                      title="Edit"
+                      ariaLabel="Edit"
+                    />
+                    <IconButton
+                      iconProps={{ iconName: 'Delete' }}
+                      onClick={() => deleteListItem(item.id)} // handles the delete list item functionality
+                      title="Delete"
+                      ariaLabel="Delete"
+                    />
+                  </div>
+                ),
+              },
+            ]}
+            selectionMode={SelectionMode.none}
+          />
+          <Dialog
+            hidden={isEditHidden}
+            onDismiss={() => setIsEditHidden(true)}
+            dialogContentProps={{
+              type: DialogType.normal,
+              title: 'Edit Quote',
+            }}
+          >
+            <div>
+              <TextField
+                label="Quote"
+                value={editedQuote}
+                onChange={handleQuoteChange}
+              />
+              <TextField
+                label="Author"
+                value={editedAuthor}
+                onChange={handleAuthorChange}
+              />
+            </div>
+            <DialogFooter>
+              <PrimaryButton text="Submit" onClick={() => editListItem()} />
+              <DefaultButton text="Cancel" onClick={() => setIsEditHidden(true)} />
+            </DialogFooter>
+          </Dialog>
         </div>
         <div>
-          <h3>Welcome to SharePoint Framework!</h3>
-          <p>
-            The SharePoint Framework (SPFx) is a extensibility model for Microsoft Viva, Microsoft Teams and SharePoint. It&#39;s the easiest way to extend Microsoft 365 with automatic Single Sign On, automatic hosting and industry standard tooling.
-          </p>
-          <h4>Learn more about SPFx development:</h4>
-          <ul className={styles.links}>
-            <li><a href="https://aka.ms/spfx" target="_blank" rel="noreferrer">SharePoint Framework Overview</a></li>
-            <li><a href="https://aka.ms/spfx-yeoman-graph" target="_blank" rel="noreferrer">Use Microsoft Graph in your solution</a></li>
-            <li><a href="https://aka.ms/spfx-yeoman-teams" target="_blank" rel="noreferrer">Build for Microsoft Teams using SharePoint Framework</a></li>
-            <li><a href="https://aka.ms/spfx-yeoman-viva" target="_blank" rel="noreferrer">Build for Microsoft Viva Connections using SharePoint Framework</a></li>
-            <li><a href="https://aka.ms/spfx-yeoman-store" target="_blank" rel="noreferrer">Publish SharePoint Framework applications to the marketplace</a></li>
-            <li><a href="https://aka.ms/spfx-yeoman-api" target="_blank" rel="noreferrer">SharePoint Framework API reference</a></li>
-            <li><a href="https://aka.ms/m365pnp" target="_blank" rel="noreferrer">Microsoft 365 Developer Community</a></li>
-          </ul>
+          <PrimaryButton text='Add Quote' onClick={()=>setIsAddHidden(false)}/>
         </div>
-      </section>
-    );
-  }
+        <Dialog
+          hidden={isAddHidden}
+          onDismiss={() => setIsAddHidden(true)}
+          dialogContentProps={{
+            type: DialogType.normal,
+            title: 'Add Quote',
+          }}
+        >
+          <div>
+            <TextField
+              label="Quote"
+              value={newQuote}
+              onChange={handleQuote}
+            />
+            <TextField
+              label="Author"
+              value={newAuthor}
+              onChange={handleAuthor}
+            />
+          </div>
+          <DialogFooter>
+            <PrimaryButton text="Submit" onClick={() => addNewListItem()} />
+            <DefaultButton text="Cancel" onClick={() => setIsAddHidden(true)} />
+          </DialogFooter>
+        </Dialog>
+      </div>
+    </>
+  )
 }
+export default ReactForm;
