@@ -2,9 +2,13 @@
 
 ## Summary
 
-Short summary on functionality and used technologies.
+Basic SharePoint WebPart Form using SPFx/React to write data to a SharePoint list. Includes display of data from the list, which would be removed in the final version. Production versions would change fields to match corresponding SharePoint list.
 
 [picture of the solution in action, if possible]
+
+## Thanks
+
+Thanks to SimplyVoda for sharing SharePoint Framework (SPFx) Series repository which this basic Form is adapted from.
 
 ## Used SharePoint Framework Version
 
@@ -44,6 +48,8 @@ Short summary on functionality and used technologies.
 
 - Clone this repository
 - Ensure that you are at the solution folder
+- Edit serve.json to change intialPage variable to match your SharePoint tenant
+- Edit ReactForm.tsx to change line 60 to match the title of your SharePoint list
 - in the command-line run:
   - **npm install**
   - **gulp serve**
@@ -56,9 +62,9 @@ Description of the extension that expands upon high-level summary above.
 
 This extension illustrates the following concepts:
 
-- topic 1
-- topic 2
-- topic 3
+- Creating a custom WebPart for SharePoint
+- Reading data from a SharePoint list
+- Writing data to a SharePoint list
 
 > Notice that better pictures and documentation will increase the sample usage and the value you are providing for others. Thanks for your submissions advance.
 
