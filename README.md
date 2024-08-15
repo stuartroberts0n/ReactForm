@@ -4,8 +4,6 @@
 
 Basic SharePoint WebPart Form using SPFx/React to write data to a SharePoint list. Includes display of data from the list, which would be removed in the final version. Production versions would change fields to match corresponding SharePoint list.
 
-[picture of the solution in action, if possible]
-
 ## Thanks
 
 Thanks to SimplyVoda for sharing SharePoint Framework (SPFx) Series repository which this basic Form is adapted from.
@@ -21,10 +19,6 @@ Thanks to SimplyVoda for sharing SharePoint Framework (SPFx) Series repository w
 
 > Get your own free development tenant by subscribing to [Microsoft 365 developer program](http://aka.ms/o365devprogram)
 
-## Prerequisites
-
-> Any special pre-requisites?
-
 ## Solution
 
 | Solution    | Author(s)                                               |
@@ -35,8 +29,8 @@ Thanks to SimplyVoda for sharing SharePoint Framework (SPFx) Series repository w
 
 | Version | Date             | Comments        |
 | ------- | ---------------- | --------------- |
-| 1.1     | March 10, 2021   | Update comment  |
-| 1.0     | January 29, 2021 | Initial release |
+| 1.1     | August 15, 2024  | Simplified Form |
+| 1.0     | August 14, 2024  | Initial release |
 
 ## Disclaimer
 
@@ -54,8 +48,6 @@ Thanks to SimplyVoda for sharing SharePoint Framework (SPFx) Series repository w
   - **npm install**
   - **gulp serve**
 
-> Include any additional steps as needed.
-
 ## Features
 
 Description of the extension that expands upon high-level summary above.
@@ -65,10 +57,6 @@ This extension illustrates the following concepts:
 - Creating a custom WebPart for SharePoint
 - Reading data from a SharePoint list
 - Writing data to a SharePoint list
-
-> Notice that better pictures and documentation will increase the sample usage and the value you are providing for others. Thanks for your submissions advance.
-
-> Share your web part with others through Microsoft 365 Patterns and Practices program to get visibility and exposure. More details on the community, open-source projects and other activities from http://aka.ms/m365pnp.
 
 ## References
 
